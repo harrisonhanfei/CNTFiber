@@ -355,8 +355,8 @@ int Tecplot_Export::Export_top_bottom_threads(const string &output_file_name, co
 	return 1;
 }
 //---------------------------------------------------------------------------
-//The top and bottom of CNT networks (by threads in Tecplot)
-int Tecplot_Export::Export_top_bottom_threads(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points)const
+//The several CNT networks (by threads in Tecplot)
+int Tecplot_Export::Export_several_threads(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points)const
 {
 	ofstream otec(output_file_name.c_str());
 	otec << "TITLE = CNT_Wires" << endl;
@@ -407,8 +407,35 @@ int Tecplot_Export::Export_top_bottom_cnt_meshes(const string &output_file_name,
 	return 1;
 }
 //---------------------------------------------------------------------------
-//The top and bottom of CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
-int Tecplot_Export::Export_top_bottom_cnt_meshes(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points, const vector<double> &cnts_radius)const
+//Export the several zones of CNT fiber (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
+int Tecplot_Export::Export_several_cnt_meshes(const struct cylinder &cyl, const vector<vector<vector<Point_3D> > > &sevcnts_pois, const vector<double> &cnts_radius)const
+{
+	//输出纳米管线网格单Zone in Tecplot
+	ofstream otec_cfmz("Cnt_Fiber_Multipule_Zones.dat");
+	//---------------------------------------------------------------------------
+	//生成用于表示纳米管的节点及四面体网格
+	vector<vector<Node> > cnts_nodes;
+	vector<vector<Element> > cnts_eles;
+
+	//Define a class of GenNetwork for calling for the function below
+	GenNetwork *Gentemp = new GenNetwork;
+	for(int i=0; i<(int)sevcnts_pois.size(); i++)
+	{
+		cnts_nodes.clear();
+		cnts_eles.clear();
+		if(Gentemp->Generate_cnts_nodes_elements(cnts_nodes, cnts_eles, sevcnts_pois[i], cnts_radius)==0) return 0;
+		if(Export_cnts_meshes_singlezone(otec_cfmz, cyl, cnts_nodes, cnts_eles)==0) return 0;
+	}
+	
+	//---------------------------------------------------------------------------
+	delete Gentemp;	
+	otec_cfmz.close();
+
+	return 1;
+}
+//---------------------------------------------------------------------------
+//The several CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
+int Tecplot_Export::Export_several_cnt_meshes(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points, const vector<double> &cnts_radius)const
 {
 	//输出纳米管线网格单Zone in Tecplot
 	ofstream otec_tbm(output_file_name.c_str());

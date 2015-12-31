@@ -1492,6 +1492,50 @@ int GenNetwork::Seperate_top_bottom_cnts(const vector<vector<Point_3D> > &cnts_p
 	return 1;
 }
 //---------------------------------------------------------------------------
+//Seperating several parts of cnts
+int GenNetwork::Seperate_several_cnts(const vector<vector<Point_3D> > &cnts_points, const vector<double> &stretch_cross_z, vector<vector<vector<Point_3D> > > &sevcnts_pois)const
+{
+	for(int i=0; i<(int)cnts_points.size(); i++)
+	{
+		vector<int> sec_count((int)stretch_cross_z.size()+1, 0);
+		for(int j=0; j<(int)cnts_points[i].size(); j++)
+		{
+			bool bkey=true;
+			for(int k=0; k<(int)stretch_cross_z.size(); k++)
+			{
+				if(cnts_points[i][j].z<=stretch_cross_z[k])
+				{
+					sec_count[k]++;
+					bkey = false;
+					break;
+				}
+			}
+			if(bkey) sec_count.back()++;
+		}
+		int nonzero_count=0;
+		int poi_num = 0;
+		int sec_num = 0;
+		for(int j=0; j<(int)sec_count.size(); j++)
+		{
+			if(sec_count[j]!=0) nonzero_count++;
+			if(sec_count[j]>poi_num) 
+			{
+				poi_num = sec_count[j];
+				sec_num = j;
+			}
+		}
+		if(nonzero_count>2) 
+		{
+			cout << "Error: more than 2 cylinder sections overlap with the cnt " << i << "!" << endl;
+			hout << "Error: more than 2 cylinder sections overlap with the cnt " << i << "!" << endl;
+			return 0;
+		}
+		else sevcnts_pois[sec_num].push_back(cnts_points[i]);
+	}
+
+	return 1;
+}
+//---------------------------------------------------------------------------
 //Translate two parts of cnts to top and to bottom direction
 int GenNetwork::Translation_top_bottom_cnts(const double &sdelta_dist, vector<vector<Point_3D> > &cnts_toppois, vector<vector<Point_3D> > &cnts_botpois)const
 {
@@ -1503,6 +1547,17 @@ int GenNetwork::Translation_top_bottom_cnts(const double &sdelta_dist, vector<ve
 	for(int i=0; i<(int)cnts_botpois.size(); i++)
 		for (int j=0; j<(int)cnts_botpois[i].size(); j++)
 			cnts_botpois[i][j].z -= half_delta;
+
+	return 1;
+}
+//---------------------------------------------------------------------------
+//Translate several parts of cnts
+int GenNetwork::Translation_several_cnts(vector<double> &delta_dist, vector<vector<vector<Point_3D> > > &sevcnts_pois)const
+{
+	for(int i=0; i<(int)sevcnts_pois.size(); i++)
+		for (int j=0; j<(int)sevcnts_pois[i].size(); j++)
+			for (int k=0; k<(int)sevcnts_pois[i][j].size(); k++)
+				sevcnts_pois[i][j][k].z += delta_dist[i];
 
 	return 1;
 }

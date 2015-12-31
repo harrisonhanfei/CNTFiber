@@ -50,8 +50,12 @@ class GenNetwork
 		int Generate_cnts_nodes_elements(vector<vector<Node> > &nodes, vector<vector<Element> > &eles, const vector<vector<Point_3D> > &cnts_points, const vector<double> &cnts_radius);
 		//Seperating two parts of cnts (top and bottom)
 		int Seperate_top_bottom_cnts(const vector<vector<Point_3D> > &cnts_points, const double &zcros, vector<vector<Point_3D> > &cnts_toppois, vector<vector<Point_3D> > &cnts_botpois)const;
+		//Seperating several parts of cnts
+		int Seperate_several_cnts(const vector<vector<Point_3D> > &cnts_points, const vector<double> &stretch_cross_z, vector<vector<vector<Point_3D> > > &sevcnts_pois)const;
 		//Translate two parts of cnts to top and to bottom direction
 		int Translation_top_bottom_cnts(const double &sdelta_dist, vector<vector<Point_3D> > &cnts_toppois, vector<vector<Point_3D> > &cnts_botpois)const;
+		//Translate several parts of cnts
+		int Translation_several_cnts(vector<double> &delta_dist, vector<vector<vector<Point_3D> > > &sevcnts_pois)const;
 
 	private:
 		//Data Member

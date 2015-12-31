@@ -56,10 +56,10 @@ int App_Network_3D::Create_conductive_network_3D(Input *Init)const
 
 		//-----------------------------------------------------------------------------------------------------------------------------------------
 		//The geometric structure of CNT network (by threads in Tecplot)
-		if(Tecexpt->Export_network_threads(cyl, cnts_points)==0) return 0;
+//		if(Tecexpt->Export_network_threads(cyl, cnts_points)==0) return 0;
 		
 		//The geometric structure of CNT network (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
-		if(Tecexpt->Export_cnt_network_meshes(cyl, cnts_points, cnts_radius)==0) return 0;
+//		if(Tecexpt->Export_cnt_network_meshes(cyl, cnts_points, cnts_radius)==0) return 0;
 
 		//-----------------------------------------------------------------------------------------------------------------------------------------
 //		struct cylinder cyl1, cyl2;														//Generate cylinders for the shell
@@ -74,44 +74,53 @@ int App_Network_3D::Create_conductive_network_3D(Input *Init)const
 //		if(Tecexpt->Export_cnt_network_meshes(cyl, cyl1, cyl2, cnts_points, cnts_radius)==0) return 0;
 
 		//-----------------------------------------------------------------------------------------------------------------------------------------
-		double stre_dist = Init->geom_rve.stretch_dist;
-		double stre_zcros = Init->geom_rve.stretch_sym_cros_z;
-		int stre_steps = Init->geom_rve.stretch_steps;
-		double sdelta_dist = stre_dist/stre_steps;
-
-		//Seperating two parts of cnts (top and bottom)
-		vector<vector<Point_3D> > cnts_toppois;	//define the cnt group on the top of cross section (z direction)
-		vector<vector<Point_3D> > cnts_botpois;	//define the cnt group on the bottom of cross section (z direction)
-		if(Genet->Seperate_top_bottom_cnts(cnts_points, stre_zcros, cnts_toppois, cnts_botpois)==0) return 0;
+		//Seperating several parts of cnts
+		vector<vector<Point_3D> > temp_assign;
+		vector<vector<vector<Point_3D> > > sevcnts_pois((int)Init->geom_rve.stretch_cross_z.size()+1, temp_assign);	//define the cnt group on several sections (z direction)
+		if(Genet->Seperate_several_cnts(cnts_points, Init->geom_rve.stretch_cross_z, sevcnts_pois)==0) return 0;
 
 		//-----------------------------------------------------------------------------------------------------------------------------------------
-		for(int i=0; i<=stre_steps; i++)
+		//Export the several zones of CNT fiber
+		if(Tecexpt->Export_several_cnt_meshes(cyl, sevcnts_pois, cnts_radius)==0) return 0;
+
+		//-----------------------------------------------------------------------------------------------------------------------------------------
+		//Translate cnts and then merge them to one verctor storage
+		vector<double> delta_dist((int)Init->geom_rve.stretch_dist.size()+1, 0.0);
+		double sum_dist = 0.0;
+		for(int i=0; i<(int)Init->geom_rve.stretch_dist.size(); i++) sum_dist += Init->geom_rve.stretch_dist[i];
+		double temp_dist = 0.0;
+		for(int i=0; i<=(int)Init->geom_rve.stretch_dist.size(); i++)
 		{
-			if(i>0) 
-			{
-				//Translate two parts of cnts to top and to bottom direction
-				if(Genet->Translation_top_bottom_cnts(sdelta_dist, cnts_toppois, cnts_botpois)==0) return 0;
-			}
+			delta_dist[i] = (temp_dist-0.5*sum_dist)/Init->geom_rve.stretch_steps;
+			if(i<(int)Init->geom_rve.stretch_dist.size()) temp_dist += Init->geom_rve.stretch_dist[i];
+		}
+
+		for(int i=0; i<=Init->geom_rve.stretch_steps; i++)
+		{
+			//Translate several parts of cnts
+			if(i>0) if(Genet->Translation_several_cnts(delta_dist, sevcnts_pois)==0) return 0;
+			
 			vector<vector<Point_3D> > temp_cnts;
-			for(int j=0; j<(int)cnts_toppois.size(); j++) temp_cnts.push_back(cnts_toppois[j]);
-			for(int j=0; j<(int)cnts_botpois.size(); j++) temp_cnts.push_back(cnts_botpois[j]);
+			for(int j=0; j<(int)sevcnts_pois.size(); j++)
+				for(int k=0; k<(int)sevcnts_pois[j].size(); k++) 
+					temp_cnts.push_back(sevcnts_pois[j][k]);
 
 			//-----------------------------------------------------------------------------------
-			//The top and bottom of CNT networks (by threads in Tecplot)
+			//The several CNT networks (by threads in Tecplot)
 //			stringstream str_thread;
-//			if(i<10)	str_thread << "CNT_Top_Bottom_Wires_000" << i << ".dat";
-//			else if (i<100) str_thread << "CNT_Top_Bottom_Wires_00" << i << ".dat";
-//			else if (i<1000)	str_thread << "CNT_Top_Bottom_Wires_0" << i << ".dat";
-//			else str_thread << "CNT_Top_Bottom_Wires_" << i << ".dat";
-//			if(Tecexpt->Export_top_bottom_threads(str_thread.str(), cyl, temp_cnts)==0) return 0;
+//			if(i<10)	str_thread << "CNT_Fiber_Multiple_Wires_000" << i << ".dat";
+//			else if (i<100) str_thread << "CNT_Fiber_Multiple_Wires_00" << i << ".dat";
+//			else if (i<1000)	str_thread << "CNT_Fiber_Multiple_Wires_0" << i << ".dat";
+//			else str_thread << "CNT_Fiber_Multiple_Wires_" << i << ".dat";
+//			if(Tecexpt->Export_several_threads(str_thread.str(), cyl, temp_cnts)==0) return 0;
 		
-			//The top and bottom of CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
+			//The several CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
 			stringstream str_mesh;
-			if(i<10)	str_mesh << "CNT_Top_Bottom_Meshes_000" << i << ".dat";
-			else if (i<100) str_mesh << "CNT_Top_Bottom_Meshes_00" << i << ".dat";
-			else if (i<1000)	str_mesh << "CNT_Top_Bottom_Meshes_0" << i << ".dat";
-			else str_mesh << "CNT_Top_Bottom_Meshes_" << i << ".dat";
-			if(Tecexpt->Export_top_bottom_cnt_meshes(str_mesh.str(), cyl, temp_cnts, cnts_radius)==0) return 0;
+			if(i<10)	str_mesh << "CNT_Fiber_Multiple_Meshes_000" << i << ".dat";
+			else if (i<100) str_mesh << "CNT_Fiber_Multiple_Meshes_00" << i << ".dat";
+			else if (i<1000)	str_mesh << "CNT_Fiber_Multiple_Meshes_0" << i << ".dat";
+			else str_mesh << "CNT_Fiber_Multiple_Meshes_" << i << ".dat";
+			if(Tecexpt->Export_several_cnt_meshes(str_mesh.str(), cyl, temp_cnts, cnts_radius)==0) return 0;
 		}
 	}
 

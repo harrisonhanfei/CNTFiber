@@ -59,9 +59,10 @@ struct Geom_RVE{
 			double cyl_length;												//Define the length of the cylinder
 			double cyl_shell_thick;										//Define the thickness of the cylinder shell
 			double cyl_hollow_rad;										//Define the radius of cylinder hollow
-			double stretch_dist;											//Define the total stretch distance
 			int stretch_steps;												//Define the total number of stretching steps
-			double stretch_sym_cros_z;								//Define the symmetric cross section along z direction
+			int stretch_cross_num;										//Define the total number of cross sections
+			vector<double> stretch_cross_z;						//Define the position of every cross sections along z direction
+			vector<double> stretch_dist;								//Define the total stretch distance
 		};
 //The nanotube parameters in a network
 struct Nanotube_Geo{

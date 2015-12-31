@@ -39,7 +39,24 @@ int Input::Read_Infile(ifstream &infile)
 		}
 
 		//the real volume of cnts in the RVE
-		if(geom_rve.mark&&nanotube_geo.mark)		nanotube_geo.real_volume = nanotube_geo.volume_fraction * geom_rve.volume;
+		if(geom_rve.mark&&nanotube_geo.mark)	nanotube_geo.real_volume = nanotube_geo.volume_fraction * geom_rve.volume;
+		//the lengh of cylinder segment should be larger than the length of nanotube
+		if(geom_rve.shape=="Cylinder"&&geom_rve.stretch_cross_num>0)
+		{
+			for(int i=0; i<=(int)geom_rve.stretch_cross_z.size(); i++)
+			{
+				double segment_length = 0.0;
+				if(i==0) segment_length = geom_rve.stretch_cross_z[i]-geom_rve.origin.z;
+				else if(i==(int)geom_rve.stretch_cross_z.size()) segment_length = geom_rve.origin.z + geom_rve.cyl_length - geom_rve.stretch_cross_z.back();
+				else segment_length = geom_rve.stretch_cross_z[i]-geom_rve.stretch_cross_z[i-1];
+				if(segment_length<nanotube_geo.len_max-Zero)
+				{
+					cout << "Error: the length of cylinder section " << i << "is smaller than the maximum length of cnts!" << endl;
+					hout << "Error: the length of cylinder section " << i << "is smaller than the maximum length of cnts!" << endl;
+					return 0;
+				}
+			}
+		}
 	}
 
 	cout << "Reading the keywords is finished!" << endl;
@@ -106,9 +123,8 @@ int Input::Data_Initialization()
 	geom_rve.cyl_length = 1.0;
 	geom_rve.cyl_shell_thick = 0.0;
 	geom_rve.cyl_hollow_rad = 1.0;
-	geom_rve.stretch_dist = 0.0;
-	geom_rve.stretch_steps = 1;
-	geom_rve.stretch_sym_cros_z = 0.0;
+	geom_rve.stretch_steps = 0;
+	geom_rve.stretch_cross_num = 0;
 
 	//Initialize the geometric paramters of nanotubes
 	nanotube_geo.keywords = "Nanotube_Geometry";
@@ -252,12 +268,59 @@ int Input::Read_rve_geometry(struct Geom_RVE &geom_rve, ifstream &infile)
 			return 0;
 		}
 		geom_rve.volume = PI*geom_rve.cyl_radius*geom_rve.cyl_radius*geom_rve.cyl_length;
-		istr0 >> geom_rve.stretch_dist >> geom_rve.stretch_steps >> geom_rve.stretch_sym_cros_z;
-		if(geom_rve.stretch_dist<0.0||geom_rve.stretch_steps<0||
-		   geom_rve.stretch_sym_cros_z<geom_rve.origin.z||geom_rve.stretch_sym_cros_z>(geom_rve.origin.z+geom_rve.cyl_length))
+		istr0 >> geom_rve.stretch_cross_num;
+		if(geom_rve.stretch_cross_num<0)
 		{
-			cout << "Error: some parameters of cylinder stretch are wrong!" << endl;
-			hout << "Error: some parameters of cylinder stretch are wrong!" << endl;
+			cout << "Error: the number of cross sections is less than 0!" << endl;
+			hout << "Error: the number of cross sections is less than 0!" << endl;
+			return 0;
+		}
+		else if(geom_rve.stretch_cross_num>0)
+		{
+			istr0 >> geom_rve.stretch_steps;
+			if(geom_rve.stretch_steps<=0)
+			{
+				cout << "Error: the number of steps is less than 0!" << endl;
+				hout << "Error: the number of steps is less than 0!" << endl;
+				return 0;
+			}
+		}
+
+		for(int i=0; i<geom_rve.stretch_cross_num; i++)
+		{
+			double cross_z_position;
+			istr0 >> cross_z_position;
+			if(cross_z_position<geom_rve.origin.z||cross_z_position>(geom_rve.origin.z+geom_rve.cyl_length))
+			{
+				cout << "Error: the position of cross section " << i+1 << "is out of the cylinder!" << endl;
+				hout << "Error: the position of cross section " << i+1 << "is out of the cylinder!" << endl;
+				return 0;
+			}
+			if((int)geom_rve.stretch_cross_z.size()>0&&cross_z_position<=geom_rve.stretch_cross_z.back())
+			{
+				cout << "Error: the positions of cross sections " << i+1 << " does not arrange in the order from small to large!" << endl;
+				hout << "Error: the positions of cross sections " << i+1 << " does not arrange in the order from small to large!" << endl;
+				return 0;
+			}
+			geom_rve.stretch_cross_z.push_back(cross_z_position);
+		}
+
+		for(int i=0; i<geom_rve.stretch_cross_num; i++)
+		{
+			double stretch_distance;
+			istr0 >> stretch_distance;
+			if(stretch_distance<0.0)
+			{
+				cout << "Error: the positions of cross sections " << i+1 << " does not arrange in the order from small to large!" << endl;
+				hout << "Error: the positions of cross sections " << i+1 << " does not arrange in the order from small to large!" << endl;
+				return 0;
+			}
+			geom_rve.stretch_dist.push_back(stretch_distance);
+		}
+		if(geom_rve.stretch_cross_num!=(int)geom_rve.stretch_cross_z.size()||geom_rve.stretch_cross_z.size()!=geom_rve.stretch_dist.size())
+		{
+			cout << "Error: the number of  cross sections or the number of seperated distances is different from stretch_cross_num!" << endl;
+			hout << "Error: the number of  cross sections or the number of seperated distances is different from stretch_cross_num!" << endl;
 			return 0;
 		}
 	}

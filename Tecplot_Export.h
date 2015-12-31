@@ -31,14 +31,18 @@ class Tecplot_Export
 														  const vector<double> &cnts_radius)const;
 		//The top and bottom of CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
 		int Export_top_bottom_cnt_meshes(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_toppois, const vector<vector<Point_3D> > &cnts_botpois, const vector<double> &cnts_radius)const;
-		int Export_top_bottom_cnt_meshes(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points, const vector<double> &cnts_radius)const;
+		//The several CNT networks (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
+		int Export_several_cnt_meshes(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points, const vector<double> &cnts_radius)const;
+		//Export the several zones of CNT fiber (by tetrahedron meshes in Tecplot) //Attention: little parts of nanotube volumes out of the cylinder
+		int Export_several_cnt_meshes(const struct cylinder &cyl, const vector<vector<vector<Point_3D> > > &sevcnts_pois, const vector<double> &cnts_radius)const;
 		//The geometric structure of CNT network (by threads in Tecplot) in a cuboid
 		int Export_network_threads(const struct cuboid &cub, const vector<vector<Point_3D> > &cnts_points)const;
 		//The geometric structure of CNT network (by threads in Tecplot) in a cylinder
 		int Export_network_threads(const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points)const;
 		//The top and bottom of CNT networks (by threads in Tecplot)
 		int Export_top_bottom_threads(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_toppois, const vector<vector<Point_3D> > &cnts_botpois)const;
-		int Export_top_bottom_threads(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points)const;
+		//The several CNT networks (by threads in Tecplot)
+		int Export_several_threads(const string &output_file_name, const struct cylinder &cyl, const vector<vector<Point_3D> > &cnts_points)const;
 
 	private:
 		//Export a 3D cuboid
