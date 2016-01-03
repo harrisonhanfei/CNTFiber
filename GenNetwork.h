@@ -68,16 +68,16 @@ class GenNetwork
 		void Export_cluster_ellipsoids_mesh(const struct cuboid &cub, const vector<struct elliparam> &ellips)const;
 		//Export the data of ellipsoid surfaces
 		void Export_cluster_ellipsoids_data(const vector<struct elliparam> &ellips, const double &ellip_ratio)const;
-		//Randomly generate a seed (original point) of a CNT in the RVE
-		int Get_seed_point(const struct cuboid &cub, int &seed, Point_3D &point)const;
-		int Get_seed_point(const struct cylinder &cyl, int &seed, Point_3D &point)const;
+		//Randomly generate a seed (intial point) of a CNT in the RVE
+		int Get_seed_point(const struct cuboid &cub, Point_3D &point)const;
+		int Get_seed_point(const struct cylinder &cyl, Point_3D &point)const;
 		//Generate a random value through a probability distribution function
-		int Get_random_value(const string &dist_type, const double &min, const double &max, int &seed, double &value)const;
-		//Randomly generate a direction in the spherical coordinates as the original direction of CNT segments
-		int Get_uniform_direction(const struct Nanotube_Geo &nanotube_geo, int &seed_sita, int &seed_pha, double &cnt_sita, double &cnt_pha)const;
+		int Get_random_value(const string &dist_type, const double &min, const double &max, double &value)const;
+		//Randomly generate a direction in the spherical coordinates as the initial direction of CNT segments
+		int Get_uniform_direction(const struct Nanotube_Geo &nanotube_geo, double &cnt_sita, double &cnt_pha)const;
 		//Randomly generate a direction in the spherical coordinates, to have the positive Z-axis to be a central axis
 		//Then, the radial angle, sita, obeys a normal distribution (sita \in fabs[(-omega,+omega)]) and the zonal angle, pha, obeys a uniform distribution (pha \in (0,2PI))
-		int Get_normal_direction(const double &omega, int &seed_sita, int &seed_pha, double &cnt_sita, double &cnt_pha)const;
+		int Get_normal_direction(const double &omega, double &cnt_sita, double &cnt_pha)const;
 		//To calculate the coordinates of the new CNT point (transformation of coordinates)
 		Point_3D Get_new_point(MathMatrix &Matrix, const double &Rad)const;
 		//To judge if a point is included in a RVE
